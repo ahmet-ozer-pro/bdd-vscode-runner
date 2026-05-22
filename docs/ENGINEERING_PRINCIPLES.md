@@ -8,6 +8,8 @@ The extension must amplify existing Java Maven Cucumber workflows, not redefine 
 
 Common projects should work without setup. Configuration may exist for advanced cases, but first-run behavior should infer safe defaults from standard Maven and Cucumber layouts.
 
+Maven Wrapper projects are part of the common path. A repository-local `mvnw` or `mvnw.cmd` should be preferred automatically when available, with global `mvn` as a fallback and minimal optional settings only as an escape hatch.
+
 ## User-Friendly by Design
 
 The extension should make common actions obvious and low-friction. Commands, CodeLens actions, TreeView entries, status messages, and errors should use clear language, avoid project-specific jargon, and guide users toward the next useful action without hiding the underlying Maven behavior.
@@ -19,6 +21,8 @@ Avoid project-specific names, paths, tags, profiles, or framework assumptions. F
 ## Reusable Execution Core
 
 Execution behavior should not be tied to one UI surface. Command Palette, CodeLens, Debug Scenario, TreeView, and future runners should share the same execution model.
+
+Scenario, feature, tag, folder, and Scenario Outline example-row targets should flow through shared orchestration so executable resolution, configuration, process handling, result ingestion, and session updates remain consistent.
 
 ## Fail Transparently
 

@@ -6,6 +6,7 @@ import * as path from 'node:path';
 import {
   buildCucumberFeatureArg,
   findNearestMavenExecutionRoot,
+  resolveMavenExecutable,
   resolveMavenExecutionRoot,
 } from '../../core/mavenExecution';
 
@@ -87,6 +88,54 @@ test('resolveMavenExecutionRoot returns searched directories when resolution fai
   ]);
 });
 
+test('resolveMavenExecutable returns configured executable when provided', () => {
+  const executionRoot = createTempWorkspace();
+
+  assert.equal(resolveMavenExecutable(executionRoot, '/opt/maven/bin/mvn'), '/opt/maven/bin/mvn');
+});
+
+test('resolveMavenExecutable returns mvnw when present', () => {
+  const executionRoot = createTempWorkspace();
+  const wrapperPath = path.join(executionRoot, 'mvnw');
+
+  fs.writeFileSync(wrapperPath, '');
+
+  assert.equal(resolveMavenExecutable(executionRoot, ''), wrapperPath);
+});
+
+test('resolveMavenExecutable returns mvnw.cmd when mvnw is absent and mvnw.cmd is present', () => {
+  const executionRoot = createTempWorkspace();
+  const wrapperPath = path.join(executionRoot, 'mvnw.cmd');
+
+  fs.writeFileSync(wrapperPath, '');
+
+  assert.equal(resolveMavenExecutable(executionRoot, ''), wrapperPath);
+});
+
+test('resolveMavenExecutable returns mvnw.cmd on Windows when present', () => {
+  const executionRoot = createTempWorkspace();
+  const wrapperPath = path.join(executionRoot, 'mvnw.cmd');
+  fs.writeFileSync(wrapperPath, '');
+
+  const result = resolveMavenExecutable(executionRoot, '');
+  assert.equal(result, wrapperPath);
+});
+
+test('resolveMavenExecutable prefers mvnw over mvnw.cmd when both present', () => {
+  const executionRoot = createTempWorkspace();
+  fs.writeFileSync(path.join(executionRoot, 'mvnw'), '');
+  fs.writeFileSync(path.join(executionRoot, 'mvnw.cmd'), '');
+
+  const result = resolveMavenExecutable(executionRoot, '');
+  assert.equal(result, path.join(executionRoot, 'mvnw'));
+});
+
+test('resolveMavenExecutable returns mvn when no Maven wrapper exists', () => {
+  const executionRoot = createTempWorkspace();
+
+  assert.equal(resolveMavenExecutable(executionRoot, ''), 'mvn');
+});
+
 test('buildCucumberFeatureArg returns a feature path relative to the execution root', () => {
   const executionRoot = '/workspace/service-a';
   const featurePath = '/workspace/service-a/src/test/resources/features/auth.feature';
@@ -94,6 +143,23 @@ test('buildCucumberFeatureArg returns a feature path relative to the execution r
   assert.equal(
     buildCucumberFeatureArg(executionRoot, featurePath, 12),
     'src/test/resources/features/auth.feature:12'
+  );
+});
+
+test('buildCucumberFeatureArg returns relative path without line for folder-style arg', () => {
+  const executionRoot = '/workspace/service-a';
+  const folderPath = '/workspace/service-a/src/test/resources/features/mobile';
+
+  assert.equal(
+    buildCucumberFeatureArg(executionRoot, folderPath),
+    'src/test/resources/features/mobile'
+  );
+});
+
+test('buildCucumberFeatureArg rejects path equal to execution root', () => {
+  assert.throws(
+    () => buildCucumberFeatureArg('/workspace', '/workspace'),
+    /Feature path is not located under the Maven execution root\./
   );
 });
 

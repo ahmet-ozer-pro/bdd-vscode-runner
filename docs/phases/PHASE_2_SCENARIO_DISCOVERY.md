@@ -11,6 +11,8 @@ Discover Cucumber features, scenarios, scenario outlines, examples, tags, and fi
 - Read `.feature` files without modifying them.
 - Identify scenario metadata needed by future execution and navigation features.
 - Support common Maven Cucumber layouts while allowing broader layout support over time.
+- Capture Background steps so every scenario session can show inherited setup steps.
+- Capture Scenario Outline example rows as addressable run targets when line metadata is available.
 
 # Non-Goals
 
@@ -41,6 +43,8 @@ Discover Cucumber features, scenarios, scenario outlines, examples, tags, and fi
 # Acceptance Criteria
 
 - Features and scenarios are discovered without project-specific assumptions.
+- Background steps are represented separately and can be attached to scenario step lists.
+- Scenario Outline examples expose stable row numbers and line numbers for per-example execution.
 - `.feature` files remain unchanged.
 - Discovery produces stable enough metadata for future UI surfaces.
 - Existing execution behavior remains intact.
@@ -61,6 +65,14 @@ Rollback removes scenario discovery capabilities while preserving canonical Mave
 # Future Compatibility
 
 Discovery should be suitable for CodeLens, TreeView grouping, failure navigation, scenario-specific execution, and multi-module workspace support.
+
+It should also support tag-based execution, Background-aware failure navigation, and Scenario Outline example-row reruns without requiring panel-specific parsing.
+
+## Recorded Parity Gaps
+
+- P1: Background steps must appear in each scenario's step list so setup failures can be shown and navigated correctly.
+- P1: Scenario Outline example rows should become first-class targets for CodeLens, rerun failed, and panel tree behavior.
+- P2: parsed tag metadata should feed a future Quick Pick tag execution command.
 
 # Completion Status
 

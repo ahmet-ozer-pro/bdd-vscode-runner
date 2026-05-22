@@ -1,76 +1,73 @@
-# bdd-vscode-runner README
+# BDD VSCode Runner
 
-This is the README for your extension "bdd-vscode-runner". After writing up a brief description, we recommend including the following sections.
+BDD VSCode Runner is a VS Code extension for running Java + Maven + Cucumber BDD scenarios while preserving canonical Maven execution.
+
+It does not replace Maven, Cucumber, Appium, Playwright, Allure, hooks, or CI. It acts as an orchestration, developer-experience, and observability layer on top of existing project behavior.
+
+## Current Capabilities
+
+- Run the current `Scenario` or `Scenario Outline` through canonical Maven feature-line execution
+- Run the current `.feature` file as a whole Maven+Cucumber feature target
+- Run all feature files in the current folder (`BDD Runner: Run Feature Folder`)
+- Select multiple feature files via Quick Pick and run them together (`BDD Runner: Run Selected Features`)
+- Run all scenarios matching a tag via Quick Pick (`BDD Runner: Run by Tag`)
+- Debug the current scenario using a real Java launch configuration (`BDD Runner: Debug Scenario`)
+- Resolve the nearest valid Maven execution root instead of assuming the VS Code workspace root
+- Auto-detect `mvnw` / `mvnw.cmd`; fall back to `mvn` only when no wrapper exists
+- Surface `BDD Run Scenario`, `BDD Run Feature`, `⚙ Config`, and example-row CodeLens actions in `.feature` files
+- Reflect last-run status (✓ / ✗ / ⊘ / ▶) in CodeLens
+- Editor right-click context menu for `.feature` files
+- Prevent overlapping runs and support active-run cancellation
+- Show real-time duration counter in the status bar during a run
+- Maintain a shared execution session model with discovered steps, hooks, examples, durations, and failure targets
+- Show recent runs in a dedicated `BDD Runner` activity-bar panel with feature -> scenario grouping
+- Filter panel sessions by pass/fail status with toolbar buttons
+- Update running step state from streamed NDJSON events (stdout regex fallback)
+- Provide failure navigation to the best available feature or source location
+- Correlate failed steps with step-definition Java methods, assertion values, and related project frames
+- Open item-specific execution detail Webview views with IntelliJ-style status badges, colored step rows, and assertion blocks
+- Rerun failed scenario sessions from the execution panel, including failed `Scenario Outline` example rows
+- Tag and folder run sessions visible in the execution panel alongside scenario sessions
+
+## Execution Panel
+
+The `BDD Runner` activity-bar view is the beginning of an IntelliJ-like run surface in VS Code.
+
+Today it shows:
+
+- recent scenario runs
+- rerun actions for the recorded session and its failed target
+- examples, hooks, steps, and failure targets from the shared execution session model
+- live step-state updates during running executions
+- item-specific execution detail views with relevant output excerpts
+- failed-step details with assertion summaries, step-definition references, and related project-frame context
+- failure targets when available
+- a direct link to the output channel
+
+This panel reuses the same canonical execution path as Command Palette and CodeLens.
+
+## Constraints
+
+- Canonical Maven execution must remain unchanged
+- `.feature` files must not be modified
+- First-run configuration must not be required for common Maven + Cucumber layouts
+- IntelliJ, Maven, Cucumber, Appium, Playwright, Allure, and CI workflows must remain valid
+
+## Development
+
+```bash
+npm run compile
+npm run lint
+npm test
+```
+
+`npm test` runs the unit test suite. Integration-style extension host tests can be added later through `npm run test:integration`.
 
 ## Documentation
 
 - [Project Vision](docs/PROJECT_VISION.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Engineering Principles](docs/ENGINEERING_PRINCIPLES.md)
 - [Roadmap](docs/roadmap/ROADMAP.md)
-
-## Features
-
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+- [Execution Experience Plan](docs/roadmap/EXECUTION_EXPERIENCE_PLAN.md)
+- [IntelliJ Parity Priority Roadmap](docs/roadmap/INTELLIJ_PARITY_PRIORITY_ROADMAP.md)

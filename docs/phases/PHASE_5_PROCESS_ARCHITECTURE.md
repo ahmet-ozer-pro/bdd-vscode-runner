@@ -11,6 +11,8 @@ Create a reliable process model for starting, tracking, canceling, and reporting
 - Standardize process lifecycle handling.
 - Support output streaming and cancellation.
 - Provide a shared process layer for all execution entry points.
+- Centralize process options and executable selection so scenario, feature, tag, and example-row runs behave consistently.
+- Handle platform-specific Maven invocation details, including Windows `.cmd` execution.
 
 # Non-Goals
 
@@ -40,6 +42,8 @@ Create a reliable process model for starting, tracking, canceling, and reporting
 # Acceptance Criteria
 
 - Maven process lifecycle is observable and controllable.
+- Scenario and feature execution reuse one orchestration path for process setup and lifecycle handling.
+- Windows Maven executable handling is explicit and covered by the shared process layer.
 - Output is available for later observability phases.
 - Cancellation behavior is documented and predictable.
 - Multiple UI surfaces can use the same process layer.
@@ -59,6 +63,18 @@ Rollback returns to earlier process handling and may reduce cancellation or trac
 
 The process model should support structured output classification, run history, TreeView status, debug flows, and enterprise execution policies.
 
+It should also support Maven Wrapper resolution, optional executable overrides, tag-based runs, feature-level runs, and Scenario Outline example-row runs without each entry point rebuilding process behavior independently.
+
+## Recorded Progress
+
+- `[ + ]` `runScenarioAtLine` and `runFeatureDocument` share one `runMavenExecution` orchestration path
+- `[ + ]` Tag execution uses the same `runMavenExecution` path; separate `runTagMavenExecution` removed
+- `[ + ]` `runMavenExecution` decomposed into `buildMavenArgs`, `logExecutionHeader`, `buildExecutionContext`, `handleRunResult`
+- `[ + ]` Windows `.cmd` executable and `shell: true` handling in place
+- `[ + ]` Maven Wrapper auto-detect (`mvnw` / `mvnw.cmd`) in place
+- `[ + ]` `spawnProcess` synchronous throw is now caught; failed handle resolves instead of hanging
+- `[ + ]` `openTextDocument` / `showTextDocument` calls have safe fallback error messages
+
 # Completion Status
 
-In Progress
+Completed

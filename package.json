@@ -11,21 +11,177 @@
   ],
   "activationEvents": [
     "onCommand:bdd-vscode-runner.runCurrentScenario",
+    "onCommand:bdd-vscode-runner.debugCurrentScenario",
+    "onCommand:bdd-vscode-runner.runCurrentFeature",
+    "onCommand:bdd-vscode-runner.runSelectedFeatures",
+    "onCommand:bdd-vscode-runner.runFeatureFolder",
+    "onCommand:bdd-vscode-runner.runByTag",
     "onCommand:bdd-vscode-runner.cancelRun",
+    "onCommand:bdd-vscode-runner.showOutput",
+    "onCommand:bdd-vscode-runner.openLastFailureLocation",
+    "onCommand:bdd-vscode-runner.rerunSession",
+    "onCommand:bdd-vscode-runner.rerunFailedSession",
     "workspaceContains:**/*.feature"
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "BDD Runner",
+      "properties": {
+        "bdd-vscode-runner.mavenExecutable": {
+          "type": "string",
+          "default": "",
+          "description": "Maven executable path. Boş bırakılırsa mvnw veya mvn otomatik tespit edilir."
+        },
+        "bdd-vscode-runner.testClassName": {
+          "type": "string",
+          "default": "RunCucumberTest",
+          "description": "Maven Surefire test class adı."
+        },
+        "bdd-vscode-runner.enableNdjsonPlugin": {
+          "type": "boolean",
+          "default": true,
+          "description": "Cucumber message NDJSON plugin argümanını zero-config koşumlarda otomatik ekler."
+        }
+      }
+    },
     "commands": [
       {
         "command": "bdd-vscode-runner.runCurrentScenario",
-        "title": "BDD Runner: Run Current Scenario"
+        "title": "BDD Runner: Run Scenario"
+      },
+      {
+        "command": "bdd-vscode-runner.debugCurrentScenario",
+        "title": "BDD Runner: Debug Scenario"
+      },
+      {
+        "command": "bdd-vscode-runner.runCurrentFeature",
+        "title": "BDD Runner: Run Feature"
+      },
+      {
+        "command": "bdd-vscode-runner.runSelectedFeatures",
+        "title": "BDD Runner: Run Selected Features",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "bdd-vscode-runner.runFeatureFolder",
+        "title": "BDD Runner: Run Feature Folder"
+      },
+      {
+        "command": "bdd-vscode-runner.runByTag",
+        "title": "BDD Runner: Run by Tag"
       },
       {
         "command": "bdd-vscode-runner.cancelRun",
         "title": "BDD Runner: Cancel Active Run"
+      },
+      {
+        "command": "bdd-vscode-runner.showOutput",
+        "title": "BDD Runner: Show Output"
+      },
+      {
+        "command": "bdd-vscode-runner.openLastFailureLocation",
+        "title": "BDD Runner: Open Last Failure Location"
+      },
+      {
+        "command": "bdd-vscode-runner.rerunSession",
+        "title": "BDD Runner: Rerun Session"
+      },
+      {
+        "command": "bdd-vscode-runner.rerunFailedSession",
+        "title": "BDD Runner: Rerun Failed Session"
+      },
+      {
+        "command": "bdd-vscode-runner.filterAll",
+        "title": "BDD Runner: Show All Sessions",
+        "icon": "$(list-unordered)"
+      },
+      {
+        "command": "bdd-vscode-runner.filterFailed",
+        "title": "BDD Runner: Show Failed Sessions",
+        "icon": "$(error)"
+      },
+      {
+        "command": "bdd-vscode-runner.filterPassed",
+        "title": "BDD Runner: Show Passed Sessions",
+        "icon": "$(pass)"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "bdd-vscode-runner",
+          "title": "BDD Runner",
+          "icon": "media/bdd-runner.svg"
+        }
+      ]
+    },
+    "views": {
+      "bdd-vscode-runner": [
+        {
+          "id": "bdd-vscode-runner.executionPanel",
+          "name": "Execution"
+        }
+      ]
+    },
+    "menus": {
+      "editor/context": [
+        {
+          "command": "bdd-vscode-runner.runCurrentScenario",
+          "when": "resourceExtname == .feature",
+          "group": "bdd-runner@1"
+        },
+        {
+          "command": "bdd-vscode-runner.runCurrentFeature",
+          "when": "resourceExtname == .feature",
+          "group": "bdd-runner@2"
+        },
+        {
+          "command": "bdd-vscode-runner.runFeatureFolder",
+          "when": "resourceExtname == .feature",
+          "group": "bdd-runner@3"
+        },
+        {
+          "command": "bdd-vscode-runner.debugCurrentScenario",
+          "when": "resourceExtname == .feature",
+          "group": "bdd-runner@4"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "bdd-vscode-runner.rerunSession",
+          "when": "view == bdd-vscode-runner.executionPanel && viewItem =~ /^session/",
+          "group": "inline@1"
+        },
+        {
+          "command": "bdd-vscode-runner.rerunFailedSession",
+          "when": "view == bdd-vscode-runner.executionPanel && viewItem == session-failed",
+          "group": "inline@2"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "bdd-vscode-runner.filterAll",
+          "when": "view == bdd-vscode-runner.executionPanel",
+          "group": "navigation@1"
+        },
+        {
+          "command": "bdd-vscode-runner.filterFailed",
+          "when": "view == bdd-vscode-runner.executionPanel",
+          "group": "navigation@2"
+        },
+        {
+          "command": "bdd-vscode-runner.filterPassed",
+          "when": "view == bdd-vscode-runner.executionPanel",
+          "group": "navigation@3"
+        },
+        {
+          "command": "bdd-vscode-runner.runSelectedFeatures",
+          "when": "view == bdd-vscode-runner.executionPanel",
+          "group": "navigation@4"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -33,7 +189,8 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "node --test out/test/unit/*.test.js",
+    "test:integration": "vscode-test"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

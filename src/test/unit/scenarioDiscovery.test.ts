@@ -2,6 +2,7 @@ import test from 'node:test';
 import * as assert from 'node:assert/strict';
 import {
   discoverFeatureDocument,
+  findNearestScenarioLine,
   findNearestScenarioMetadata,
   isScenarioLine,
 } from '../../core/scenarioDiscovery';
@@ -52,6 +53,15 @@ Feature: Checkout
     featureName: 'Checkout',
     exampleBlockCount: 0,
     exampleRowCount: 0,
+    examples: [],
+    steps: [
+      {
+        keyword: 'Given',
+        text: 'the user is on the checkout page',
+        rawText: 'Given the user is on the checkout page',
+        line: 4,
+      },
+    ],
   });
   assert.deepEqual(discovery.scenarios[1], {
     name: 'Card validation',
@@ -61,6 +71,30 @@ Feature: Checkout
     featureName: 'Checkout',
     exampleBlockCount: 1,
     exampleRowCount: 2,
+    examples: [
+      {
+        line: 13,
+        values: ['bad'],
+      },
+      {
+        line: 14,
+        values: ['lost'],
+      },
+    ],
+    steps: [
+      {
+        keyword: 'When',
+        text: 'the user pays with <card>',
+        rawText: 'When the user pays with <card>',
+        line: 8,
+      },
+      {
+        keyword: 'Then',
+        text: 'the payment is rejected',
+        rawText: 'Then the payment is rejected',
+        line: 9,
+      },
+    ],
   });
 });
 
@@ -82,6 +116,24 @@ Feature: Orders
   assert.equal(findNearestScenarioMetadata(discovery.scenarios, 0), undefined);
 });
 
+test('findNearestScenarioLine returns the zero-based scenario line at or above cursor', () => {
+  const sourceLines = lines(`
+Feature: Orders
+
+  Scenario: First
+    Given one
+
+  Scenario: Second
+    Given two
+`);
+
+  const reader = getLineReader(sourceLines);
+
+  assert.equal(findNearestScenarioLine(reader, 3), 2);
+  assert.equal(findNearestScenarioLine(reader, 6), 5);
+  assert.equal(findNearestScenarioLine(reader, 0), undefined);
+});
+
 test('discoverFeatureDocument does not carry tags across unrelated lines', () => {
   const sourceLines = lines(`
 Feature: Search
@@ -97,6 +149,49 @@ Feature: Search
   const discovery = discoverFeatureDocument(getLineReader(sourceLines), sourceLines.length);
 
   assert.deepEqual(discovery.scenarios[0]?.tags, []);
+});
+
+test('discoverFeatureDocument prepends background steps to each scenario', () => {
+  const sourceLines = lines(`
+Feature: Shared setup
+
+  Background:
+    Given a signed in user
+    And a clean account
+
+  Scenario: First flow
+    When the user opens the dashboard
+    Then the dashboard is visible
+
+  Scenario: Second flow
+    When the user opens settings
+    Then settings are visible
+`);
+
+  const discovery = discoverFeatureDocument(getLineReader(sourceLines), sourceLines.length);
+
+  assert.deepEqual(
+    discovery.backgroundSteps.map((step) => step.rawText),
+    ['Given a signed in user', 'And a clean account']
+  );
+  assert.deepEqual(
+    discovery.scenarios[0].steps.map((step) => step.rawText),
+    [
+      'Given a signed in user',
+      'And a clean account',
+      'When the user opens the dashboard',
+      'Then the dashboard is visible',
+    ]
+  );
+  assert.deepEqual(
+    discovery.scenarios[1].steps.map((step) => step.rawText),
+    [
+      'Given a signed in user',
+      'And a clean account',
+      'When the user opens settings',
+      'Then settings are visible',
+    ]
+  );
 });
 
 test('isScenarioLine recognizes scenario headers only', () => {

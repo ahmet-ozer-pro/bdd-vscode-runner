@@ -35,6 +35,7 @@ type SpawnLike = (
     cwd: string;
     env: NodeJS.ProcessEnv;
     stdio: ['ignore', 'pipe', 'pipe'];
+    shell?: boolean;
   }
 ) => ChildProcessWithoutNullStreams;
 
@@ -62,11 +63,32 @@ export class ProcessRunnerCoordinator {
 
     hooks.onStart?.(request);
 
-    const child = this.spawnProcess(request.executable, request.args, {
-      cwd: request.cwd,
-      env: request.env,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
+    let child: ChildProcessWithoutNullStreams;
+    try {
+      child = this.spawnProcess(request.executable, request.args, {
+        cwd: request.cwd,
+        env: request.env,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        ...(process.platform === 'win32' ? { shell: true } : {}),
+      });
+    } catch (spawnError) {
+      const error = spawnError instanceof Error ? spawnError : new Error(String(spawnError));
+      hooks.onError?.(error);
+      const failedResult: ProcessRunResult = { exitCode: 1, cancelled: false };
+      hooks.onExit?.(failedResult);
+      const failedHandle: RunningProcessHandle = {
+        cancel: () => {},
+        get isActive() {
+          return false;
+        },
+        get summary() {
+          return request.displayCommand;
+        },
+        completed: Promise.resolve(failedResult),
+      };
+      this.activeRun = undefined;
+      return { started: true, run: failedHandle };
+    }
 
     const completed = new Promise<ProcessRunResult>((resolve) => {
       child.stdout?.on('data', (data: string | Buffer) => {

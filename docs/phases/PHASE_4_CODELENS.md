@@ -11,6 +11,8 @@ Provide in-editor actions for discovered Cucumber scenarios while reusing shared
 - Show relevant CodeLens actions above scenarios or feature sections.
 - Connect actions to canonical Maven execution.
 - Keep CodeLens behavior generic across supported layouts.
+- Expose Scenario Outline example-row run actions when discovery can map example rows safely.
+- Reflect last-run status from the shared execution session store when available.
 
 # Non-Goals
 
@@ -39,7 +41,9 @@ Provide in-editor actions for discovered Cucumber scenarios while reusing shared
 
 # Acceptance Criteria
 
-- CodeLens actions appear for discovered scenarios where supported.
+- CodeLens actions appear for discovered scenarios and supported feature-level entry points where supported.
+- Scenario Outline example rows can receive distinct run actions once row metadata is available.
+- Last-run status can be displayed without CodeLens owning execution state.
 - Actions invoke shared execution orchestration.
 - Existing Command Palette execution remains valid.
 - `.feature` files are never changed.
@@ -58,6 +62,26 @@ Rollback removes in-editor actions while preserving discovery and command-based 
 # Future Compatibility
 
 CodeLens should support future debug actions, observability links, and failure navigation without owning execution logic.
+
+It should also support:
+
+- last-run status markers for passed and failed scenarios
+- separate Run and Debug affordances if they remain backed by the shared execution core
+- tag-aware or example-row-aware run targets without duplicating Maven command construction
+
+## Recorded Progress
+
+- `[ + ]` CodeLens actions appear for discovered `Scenario` and `Scenario Outline` lines
+- `[ + ]` Scenario Outline example rows have individually runnable CodeLens actions
+- `[ + ]` Last-run status prefix (✓ / ✗ / ⊘ / ▶) reflects shared session store state
+- `[ + ]` Run / Config (debug placeholder) split exists on each scenario lens
+- `[ + ]` Feature-level run entry point exists via a dedicated feature CodeLens
+- `[ + ]` Editor sağ tık context menüsünden Run Scenario, Run Feature, Run Feature Folder komutları erişilebilir
+
+## Remaining Gaps
+
+- P3: real debug launch configuration flow (placeholder shows "coming soon")
+- P3: multi-feature file selection for a combined run
 
 # Completion Status
 

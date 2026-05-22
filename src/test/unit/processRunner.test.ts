@@ -109,3 +109,34 @@ test('ProcessRunnerCoordinator cancels the active run', async () => {
   assert.equal(fakeChild.killed, true);
   assert.deepEqual(result, { exitCode: 143, cancelled: true });
 });
+
+test('ProcessRunnerCoordinator resolves completed with exitCode 1 when spawn throws synchronously', async () => {
+  const coordinator = new ProcessRunnerCoordinator(() => {
+    throw new Error('spawn failed');
+  });
+  const errors: string[] = [];
+
+  const started = coordinator.start(
+    {
+      executable: 'mvn',
+      args: ['test'],
+      cwd: '/workspace',
+      env: process.env,
+      displayCommand: 'mvn test',
+    },
+    {
+      onError: (err) => errors.push(err.message),
+    }
+  );
+
+  assert.equal(started.started, true);
+  if (!started.started) {
+    return;
+  }
+
+  const result = await started.run.completed;
+
+  assert.deepEqual(result, { exitCode: 1, cancelled: false });
+  assert.deepEqual(errors, ['spawn failed']);
+  assert.equal(coordinator.getActiveRun(), undefined);
+});
